@@ -2,7 +2,6 @@
 ```{r,echo=TRUE}
 activity <- read.csv("/Users/agrainofsand/Documents/coursera_datascience/5 Reproducible Research/activity.csv",
                      stringsAsFactors=F)
-activity$date <- as.Date(activity$Date)
 ```
 
 
