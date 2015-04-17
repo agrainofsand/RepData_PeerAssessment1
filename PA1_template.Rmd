@@ -7,11 +7,18 @@ output:
 
 
 ## Loading and preprocessing the data
-
+```{r,echo=TRUE}
+activity <- read.csv("/Users/agrainofsand/Documents/coursera_datascience/5 Reproducible Research/activity.csv",
+                     stringsAsFactors=F)
+activity$date <- as.Date(activity$Date)
+```
 
 
 ## What is mean total number of steps taken per day?
-
+```{r,echo=TRUE}
+group_by_date <- aggregate(steps ~ date, activity, sum)
+hist(group_by_date$steps, main = "Histogram of Total Number of Steps per Day", xlab="Steps")
+```
 
 
 ## What is the average daily activity pattern?
