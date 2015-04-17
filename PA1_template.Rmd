@@ -1,11 +1,3 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
-
-
 ## Loading and preprocessing the data
 ```{r,echo=TRUE}
 activity <- read.csv("/Users/agrainofsand/Documents/coursera_datascience/5 Reproducible Research/activity.csv",
@@ -18,6 +10,12 @@ activity$date <- as.Date(activity$Date)
 ```{r,echo=TRUE}
 group_by_date <- aggregate(steps ~ date, activity, sum)
 hist(group_by_date$steps, main = "Histogram of Total Number of Steps per Day", xlab="Steps")
+
+mean_steps <- mean(group_by_date$steps)
+mean_steps
+
+median_steps <- median(group_by_date$steps)
+median_steps
 ```
 
 
