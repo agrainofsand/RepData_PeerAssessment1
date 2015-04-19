@@ -1,3 +1,9 @@
+---
+title: "PA1_template"
+author: "agrainofsand"
+output: html_document
+---
+
 ## Loading and preprocessing the data
 ```{r,echo=TRUE}
 activity <- read.csv("/Users/agrainofsand/Documents/coursera_datascience/5 Reproducible Research/activity.csv",
@@ -19,11 +25,48 @@ median_steps
 
 
 ## What is the average daily activity pattern?
+1. Average daily pattern
+```{r, echo=TRUE}
+avg_daily_pattern <- aggregate(activity$steps, by = list(activity$interval), FUN=mean, na.rm = T)
+colnames(avg_daily_pattern) <- c("intervals", "mean")
+plot(avg_daily_pattern$intervals, avg_daily_pattern$mean, xlab = "Time interval of 5 min", ylab = "Avg number of steps 5 min interval", type = "l", main = "Avg daily activity pattern")
+```
 
+2. Find interval with max steps
+```{r,echo=TRUE}
+max_steps <- max(avg_daily_pattern$mean)
+interval_with_max_steps <- avg_daily_pattern[avg_daily_pattern$mean==max(max_steps),1]
+interval_with_max_steps
+```
 
 
 ## Imputing missing values
+1. Calculating and reporting total number of missing values
+```{r, echo=TRUE}
+number_of_rows_with_missing_values <- nrow(activity[is.na(activity$steps)==TRUE,])
+number_of_rows_with_missing_values
+```
 
+2. Create a new data set, filling in missing values
+```{r, echo=TRUE}
+activity_new <- activity
+row.names(avg_daily_pattern) <- avg_daily_pattern$intervals
+i <- which(is.na(activity_new$steps))
+activity_new[i, 1] <- activity_new[as.factor(activity_new[i,3]),2]
+```
 
+3. Histogram of total number of steps taken each day
+```{r, echo=TRUE}
+activity_new_by_date <- aggregate(steps ~ date, activity, sum)
+hist(activity_new_by_date$steps, xlab ="Steps", ylab = "Frequency", main="Histogram for Number of steps taken per day")
+```
+
+4. Mean and median of total number of steps now
+``` {r, echo=TRUE}
+mean_new <- mean(activity_new$steps)
+mean_new
+median_new <- median(activity_new$steps)
+median_new
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
