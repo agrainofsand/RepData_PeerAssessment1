@@ -16,17 +16,11 @@ activity <- read.csv("/Users/agrainofsand/Documents/coursera_datascience/5 Repro
 
 ```r
 group_by_date <- aggregate(steps ~ date, activity, sum)
-png("Histogram_Number_of_Steps_per_Day.png", width=480, height=480)
+
 hist(group_by_date$steps, main = "Histogram of Total Number of Steps per Day", xlab="Steps")
-dev.off()
 ```
 
 ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
-
-```
-## RStudioGD 
-##         2
-```
 
 ```r
 mean_steps <- mean(group_by_date$steps)
@@ -54,17 +48,11 @@ median_steps
 avg_daily_pattern <- aggregate(activity$steps, by = list(activity$interval), FUN=mean, na.rm = T)
 colnames(avg_daily_pattern) <- c("intervals", "mean")
 
-png("Avg_Daily_Pattern.png", width=480, height=480)
+
 plot(avg_daily_pattern$intervals, avg_daily_pattern$mean, xlab = "Time interval of 5 min", ylab = "Avg number of steps 5 min interval", type = "l", main = "Avg daily activity pattern")
-dev.off()
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
-
-```
-## RStudioGD 
-##         2
-```
 
 2. Find interval with max steps
 
@@ -104,17 +92,11 @@ activity_new[i, 1] <- activity_new[as.factor(activity_new[i,3]),2]
 
 ```r
 activity_new_by_date <- aggregate(steps ~ date, activity, sum)
-png("Histogram_Number_of_Steps_per_Day_New.png", width=480, height=480)
+
 hist(activity_new_by_date$steps, xlab ="Steps", ylab = "Frequency", main="Histogram for Number of steps taken per day")
-dev.off()
 ```
 
 ![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
-
-```
-## RStudioGD 
-##         2
-```
 
 4. Mean and median of total number of steps now
 
