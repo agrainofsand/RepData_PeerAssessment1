@@ -5,7 +5,11 @@ output: html_document
 ---
 
 ## Loading and preprocessing the data
-```{r,echo=TRUE}
+```{r,echo=TRUE, message=FALSE}
+# Loading library
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
 activity <- read.csv("/Users/agrainofsand/Documents/coursera_datascience/5 Reproducible Research/activity.csv",
                      stringsAsFactors=F)
 ```
@@ -13,17 +17,22 @@ activity <- read.csv("/Users/agrainofsand/Documents/coursera_datascience/5 Repro
 
 ## What is mean total number of steps taken per day?
 ```{r,echo=TRUE}
-group_by_date <- aggregate(steps ~ date, activity, sum)
+activity$date <- as.Date(activity$date)
+steps_by_date <- aggregate(data=activity, steps ~ date, FUN=sum)
 
-hist(group_by_date$steps, main = "Histogram of Total Number of Steps per Day", xlab="Steps")
+print('1. Total number of steps per day:')
+steps_by_date
 
+print('2. Histogram of total number of steps per day')
+hist(steps_by_date$steps, main = "Histogram of Total Number of Steps per Day", xlab="Steps")
 
-mean_steps <- mean(group_by_date$steps)
-mean_steps
+mean_steps <- mean(steps_by_date$steps)
+paste('3a. Mean steps: ', round(mean_steps,0))
 
-median_steps <- median(group_by_date$steps)
-median_steps
+median_steps <- median(steps_by_date$steps)
+paste('3b. Median steps: ', median_steps)
 ```
+Mean total of steps taken per day is `r round(mean_steps,2)`
 
 
 ## What is the average daily activity pattern?
@@ -31,7 +40,6 @@ median_steps
 ```{r, echo=TRUE}
 avg_daily_pattern <- aggregate(activity$steps, by = list(activity$interval), FUN=mean, na.rm = T)
 colnames(avg_daily_pattern) <- c("intervals", "mean")
-
 
 plot(avg_daily_pattern$intervals, avg_daily_pattern$mean, xlab = "Time interval of 5 min", ylab = "Avg number of steps 5 min interval", type = "l", main = "Avg daily activity pattern")
 
@@ -48,36 +56,60 @@ interval_with_max_steps
 ## Imputing missing values
 1. Calculating and reporting total number of missing values
 ```{r, echo=TRUE}
-number_of_rows_with_missing_values <- nrow(activity[is.na(activity$steps)==TRUE,])
+number_of_rows_with_missing_values <- nrow(filter(activity, is.na(steps)))
 number_of_rows_with_missing_values
 ```
 
-2. Create a new data set, filling in missing values
+2. Create a new data set, filling in missing values, using the mean of each interval
 ```{r, echo=TRUE}
-activity_new <- activity
-row.names(avg_daily_pattern) <- avg_daily_pattern$intervals
-i <- which(is.na(activity_new$steps))
-activity_new[i, 1] <- activity_new[as.factor(activity_new[i,3]),2]
+activity_new <- merge(activity, avg_daily_pattern, by.x="interval", by.y="intervals") %>%
+                  mutate(steps_new = ifelse(is.na(steps),mean, steps)) %>%
+                  select(steps_new, date, interval)
+
 ```
 
 3. Histogram of total number of steps taken each day
 ```{r, echo=TRUE}
-activity_new_by_date <- aggregate(steps ~ date, activity, sum)
+activity_new_by_date <- aggregate(steps_new ~ date, activity_new, sum)
 
-hist(activity_new_by_date$steps, xlab ="Steps", ylab = "Frequency", main="Histogram for Number of steps taken per day")
+hist(activity_new_by_date$steps, xlab ="Steps", ylab = "Frequency", main="New Number of steps taken per day")
 
 ```
 
 4. Mean and median of total number of steps now
 ``` {r, echo=TRUE}
-mean_new <- mean(activity_new$steps)
-mean_new
-median_new <- median(activity_new$steps)
-median_new
+mean_steps_new <- mean(activity_new_by_date$steps)
+median_steps_new <- median(activity_new_by_date$steps)
 ```
+Mean steps now is `r round(mean_steps_new,2)`, which is the same as the mean number of steps before, given that we used the mean to fill in the NAs.
+
+Median steps now is `r round(median_steps_new,2)`, which is `round(median_steps_new - median_steps,2)` different from the original median step count of `r round(median_steps,2)`.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ``` {r, echo=TRUE}
+activity_new_by_date <- activity_new_by_date %>%
+                          mutate(weekday = weekdays(as.Date(date)),
+                                  is_weekend = ifelse(weekday == "Saturday" ,"yes", ifelse(weekday == "Sunday","yes","no"))
+                                  )
 
+mean_steps_weekend <- aggregate(steps_new ~ is_weekend, data=activity_new_by_date, mean)
+mean_steps_weekend
+```
+1. The mean number of steps on weekends is `r round(filter(mean_steps_weekend, is_weekend=="yes")[,2],2)`, which is `r round((filter(mean_steps_weekend, is_weekend=="yes")[,2] / filter(mean_steps_weekend, is_weekend=="no")[,2] -1),2) *100`% higher than the mean number of steps on weekdays.
 
+2. Panel plot
+``` {r, echo=TRUE}
+activity_new_by_interval <- activity_new %>%
+                          mutate(weekday = weekdays(as.Date(date)),
+                                  is_weekend = ifelse(weekday == "Saturday" ,"yes", ifelse(weekday == "Sunday","yes","no"))
+                                  )
+activity_new_by_interval_mean <- aggregate(data = activity_new_by_interval, steps_new ~ interval + is_weekend, FUN=mean)
+weekday_activity <- filter(activity_new_by_interval_mean, is_weekend=="no")
+weekend_activity <- filter(activity_new_by_interval_mean, is_weekend=="yes")
+
+graph.weekday_activity <- ggplot(data=weekday_activity, aes(x=interval, y=steps_new)) + geom_line() + theme_bw() + ggtitle("Weekday Activity")
+
+graph.weekend_activity <- ggplot(data=weekend_activity, aes(x=interval, y=steps_new)) + geom_line() + theme_bw() + ggtitle("Weekend Activity")
+
+grid.arrange(graph.weekday_activity, graph.weekend_activity, nrow=2)
 ```
